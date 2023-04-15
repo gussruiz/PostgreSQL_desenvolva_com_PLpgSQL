@@ -132,17 +132,122 @@ $$ language plpgsql;
 
 select terceira_pl();
 
+-- aula 4
+
+create or replace function cria_a(nome varchar) returns void as $$
+	begin
+		insert into a (nome) values(cria_a.nome);
+	end;
+$$ language plpgsql;
+
+select cria_a('Gustavo Silva Ruiz');
+select * from a;
+
+create or replace function cria_instrutor_falso() returns instrutor as $$ 
+	declare 
+		retorno instrutor;
+	begin
+		select 22, 'Nome Falso', 200::DECIMAL into retorno;
+		return retorno;
+	end;
+$$ language plpgsql;
+
+select id, salario from cria_instrutor_falso();
+
+create or replace function instrutores_bem_pagos(valor_salario DECIMAL) returns setof instrutor as $$
+	begin
+		return query select * from instrutor where salario > valor_salario; 
+	end;
+$$ language plpgsql;
+
+select * from instrutores_bem_pagos(300);
 
 
+create or replace function salario_ok (instrutor instrutor) returns varchar as  $$
+	begin
+		if instrutor.salario > 200 then
+			return 'Salário esta ok';
+		else 
+			return 'Salário pode aumentar';
+		end if;
+	end;
+$$ language plpgsql;
+
+select nome, salario_ok(instrutor) from instrutor;
+
+-- feito de uma outra forma
+create or replace function salario_ok_2 (id_instrutor integer) returns varchar as  $$
+	declare 
+		instrutor instrutor;
+	begin
+		select * from instrutor where id = id_instrutor into instrutor;
+		if instrutor.salario > 200 then
+			return 'Salário esta ok';
+		else 
+			return 'Salário pode aumentar';
+		end if;
+	end;
+$$ language plpgsql;
+
+select nome, salario_ok_2(instrutor.id) from instrutor;
+
+create or replace function salario_ok_3 (id_instrutor integer) returns varchar as  $$
+	declare 
+		instrutor instrutor;
+	begin
+		select * from instrutor where id = id_instrutor into instrutor;
+		if instrutor.salario > 300 then
+			return 'Salário esta ok';
+		else 
+			if instrutor.salario = 300 then
+				return 'Salário pode aumentar';
+			else 
+				return 'Salário está defasado';
+			end if;
+		end if;
+	end;
+$$ language plpgsql;
+
+select nome, salario_ok_3(instrutor.id) from instrutor;
 
 
+create or replace function salario_ok_4 (id_instrutor integer) returns varchar as  $$
+	declare 
+		instrutor instrutor;
+	begin
+		select * from instrutor where id = id_instrutor into instrutor;
+		if instrutor.salario > 300 then
+			return 'Salário esta ok';
+		elseif instrutor.salario = 300 then
+			return 'Salário pode aumentar';
+		else 
+			return 'Salário está defasado';
+		end if;
+	end;
+$$ language plpgsql;
+
+select nome, salario_ok_4(instrutor.id) from instrutor;
 
 
+create or replace function salario_ok_5 (id_instrutor integer) returns varchar as  $$
+	declare 
+		instrutor instrutor;
+	begin
+		select * from instrutor where id = id_instrutor into instrutor;
+		case instrutor.salario
+			when 100 then
+				return 'Salário muito baixo';
+			when 200 then
+				return 'Salário baixo';
+			when 300 then
+				return 'Salário ok';
+			else 
+				return 'Salário ótimo';
+		end case;
+	end;
+$$ language plpgsql;
 
-
-
-
-
+select nome, salario_ok_5(instrutor.id) from instrutor;
 
 
 
