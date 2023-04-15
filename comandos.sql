@@ -249,5 +249,75 @@ $$ language plpgsql;
 
 select nome, salario_ok_5(instrutor.id) from instrutor;
 
+--aula 5
 
+create or replace function tabuada_v1(num integer) returns setof integer as $$
+	declare 
+	begin
+		return next num * 1;
+		return next num * 2;	
+		return next num * 3;	
+		return next num * 4;	
+		return next num * 5;	
+		return next num * 6;
+		return next num * 7;	
+		return next num * 8;	
+		return next num * 9;	
+		return next num * 10;	
+	end;
+$$ language plpgsql;
+
+select tabuada_v1(4);
+
+create or replace function tabuada_v2(num integer) returns setof varchar as $$
+	declare 
+		multiplicador integer default 1;
+	begin
+		loop
+			return next num || ' x ' || multiplicador || ' = ' || num * multiplicador;
+			multiplicador := multiplicador + 1;
+			exit when multiplicador = 10;
+		end loop;
+	end;
+$$ language plpgsql;
+
+select tabuada_v2(9) as "Tabuada do 9";
+
+
+create or replace function tabuada_v3(num integer) returns setof varchar as $$
+	declare 
+		multiplicador integer default 1;
+	begin
+		while multiplicador < 10 loop
+			return next num || ' x ' || multiplicador || ' = ' || num * multiplicador;
+			multiplicador := multiplicador + 1;
+		end loop;
+	end;
+$$ language plpgsql;
+
+select tabuada_v3(9) as "Tabuada do 9";
+
+
+create or replace function tabuada_v4(num integer) returns setof varchar as $$
+	begin
+		for multiplicador in 1..9 loop
+			return next num || ' x ' || multiplicador || ' = ' || num * multiplicador;
+		end loop;
+	end;
+$$ language plpgsql;
+
+select tabuada_v4(9) as "Tabuada do 9";
+
+create or replace function instrutor_com_salario(out nome varchar, out salario_ok varchar) returns setof record as $$
+	declare instrutor instrutor;
+	begin
+		for instrutor in select * from instrutor loop
+			nome := instrutor.nome;
+			salario_ok := salario_ok_5(instrutor.id);
+			return next;
+		end loop;
+	end;
+$$ language plpgsql;
+
+select * from instrutor_com_salario();
 
