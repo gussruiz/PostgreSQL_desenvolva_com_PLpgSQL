@@ -94,3 +94,55 @@ $$ language sql;
 
 select * from soma_e_produto(2, 3);
 
+-- aula 3
+
+create or replace function primeira_pl() returns integer as $$
+	begin
+		return 1; -- pode-se ter varios comandos mas para retorno sempre return
+	end
+$$ language plpgsql;
+
+select primeira_pl();
+
+
+create or replace function segunda_pl() returns integer as $$
+	declare 
+		primeira_varivavel integer default 3;
+	begin
+		primeira_varivavel := primeira_varivavel * 2; -- := atribuição 
+		return primeira_varivavel;
+	end
+$$ language plpgsql;
+
+select segunda_pl();
+
+create or replace function terceira_pl() returns integer as $$
+	declare 
+		primeira_varivavel integer default 3;
+	begin
+		primeira_varivavel := primeira_varivavel * 2; -- := atribuição 
+		
+		begin
+			primeira_varivavel := 7;
+			
+		end;
+		return primeira_varivavel;
+	end
+$$ language plpgsql;
+
+select terceira_pl();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
