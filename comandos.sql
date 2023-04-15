@@ -321,3 +321,99 @@ $$ language plpgsql;
 
 select * from instrutor_com_salario();
 
+-- aula 6
+
+CREATE TABLE aluno (
+    id SERIAL PRIMARY KEY,
+	primeiro_nome VARCHAR(255) NOT NULL,
+	ultimo_nome VARCHAR(255) NOT NULL,
+	data_nascimento DATE NOT NULL
+);
+
+CREATE TABLE categoria (
+    id SERIAL PRIMARY KEY,
+	nome VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE curso (
+    id SERIAL PRIMARY KEY,
+	nome VARCHAR(255) NOT NULL,
+	categoria_id INTEGER NOT NULL REFERENCES categoria(id)
+);
+
+CREATE TABLE aluno_curso (
+	aluno_id INTEGER NOT NULL REFERENCES aluno(id),
+	curso_id INTEGER NOT NULL REFERENCES curso(id),
+	PRIMARY KEY (aluno_id, curso_id)
+);
+
+create or replace function cria_curso(nome_curso varchar, nome_categoria varchar) returns void as $$
+	declare
+		id_categoria integer;
+	begin
+		select id into id_categoria from categoria where nome = nome_categoria;
+		
+		if not found then
+			insert into categoria(nome) values (nome_categoria) returning id into id_categoria;
+		end if;
+		
+		insert into curso(nome, categoria_id) values (nome_curso, id_categoria);
+	end;
+$$ language plpgsql;
+
+select cria_curso('PHP', 'Programação');
+
+select * from curso;
+select * from categoria;
+
+select cria_curso('Java', 'Programação');
+
+select * from curso;
+select * from categoria;
+
+create table log_instrutores(
+	id serial primary key,
+	informacao varchar(255),
+	momento_criacao timestamp default current_timestamp
+);
+
+
+create or replace function cria_instrutor (nome_instrutor varchar, salario_instrutor decimal) returns void as $$
+	declare
+		id_inserido integer;
+		media_salarial decimal;
+		instrutores_recebem_menos integer;
+		total_instrutores integer;
+		salario decimal;
+		percentual decimal;
+	begin
+		insert into instrutor (nome, salario) values (nome_instrutor, salario_instrutor) returning id into id_inserido;
+		
+		select avg(instrutor.salario) into media_salarial from instrutor where id <> id_inserido;
+		
+		if salario_instrutor > media_salarial then
+			insert into log_instrutores (informacao) values (nome_instrutor || 'recebe acima da média');
+		end if;
+		
+		for salario in select instrutor.salario from instrutor where id <> id_inserido loop
+			total_instrutores := total_instrutores + 1;
+			
+			if salario_instrutor > salario then
+				instrutores_recebem_menos := instrutores_recebem_menos + 1;
+			end if;
+		end loop;
+		percentual = instrutores_recebem_menos::decimal / total_instrutores::decimal * 100;
+			
+		insert into log_instrutores (informacao) 
+			values (nome_instrutor || ' recebe mais do que ' || percentual || '% da grade de instrutores');
+	end;
+$$ language plpgsql;
+
+select * from instrutor;
+
+select cria_instrutor('Fulana de tal', 1000.00);
+
+select * from instrutor;
+
+select * from log_instrutores;
+
